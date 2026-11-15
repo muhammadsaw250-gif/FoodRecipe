@@ -19,8 +19,10 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+
         tabBarActiveTintColor: "#E58B38",
         tabBarInactiveTintColor: "#AAA",
+
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
           height: 65,
@@ -28,21 +30,34 @@ function MainTabs() {
           paddingTop: 8,
           borderTopColor: "#F0E7DE"
         },
+
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600"
         },
+
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
 
-          if (route.name === "Home") {
-            iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Favorite") {
-            iconName = focused ? "heart" : "heart-outline";
-          } else if (route.name === "Add") {
-            iconName = focused ? "add-circle" : "add-circle-outline";
-          } else if (route.name === "Profile") {
-            iconName = focused ? "person" : "person-outline";
+          switch (route.name) {
+            case "Home":
+              iconName = focused ? "home" : "home-outline";
+              break;
+
+            case "Favorite":
+              iconName = focused ? "heart" : "heart-outline";
+              break;
+
+            case "Add":
+              iconName = focused ? "add-circle" : "add-circle-outline";
+              break;
+
+            case "Profile":
+              iconName = focused ? "person" : "person-outline";
+              break;
+
+            default:
+              iconName = "ellipse-outline";
           }
 
           return (
@@ -55,10 +70,25 @@ function MainTabs() {
         }
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Favorite" component={FavoriteScreen} />
-      <Tab.Screen name="Add" component={AddRecipeScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+      />
+
+      <Tab.Screen
+        name="Favorite"
+        component={FavoriteScreen}
+      />
+
+      <Tab.Screen
+        name="Add"
+        component={AddRecipeScreen}
+      />
+
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+      />
     </Tab.Navigator>
   );
 }
@@ -66,9 +96,20 @@ function MainTabs() {
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="MainTabs" component={MainTabs} />
-        <Stack.Screen name="Detail" component={DetailScreen} />
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false
+        }}
+      >
+        <Stack.Screen
+          name="MainTabs"
+          component={MainTabs}
+        />
+
+        <Stack.Screen
+          name="Detail"
+          component={DetailScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

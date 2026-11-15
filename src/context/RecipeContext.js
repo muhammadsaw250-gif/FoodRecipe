@@ -1,7 +1,6 @@
 
 import React, {
   createContext,
-  useContext,
   useEffect,
   useState
 } from "react";
@@ -9,33 +8,51 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import defaultRecipes from "../data/recipes";
 
-const RecipeContext = createContext();
+export const RecipeContext = createContext(null);
 
 export const RecipeProvider = ({ children }) => {
   const [recipes, setRecipes] = useState(defaultRecipes);
   const [favorites, setFavorites] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
+  // Memuat data dari AsyncStorage
   useEffect(() => {
     const loadData = async () => {
       try {
         const savedRecipes = await AsyncStorage.getItem("customRecipes");
         const savedFavorites = await AsyncStorage.getItem("favorites");
 
-        if (savedRecipes) {
-          const customRecipes = JSON.parse(savedRecipes);
+        let customRecipes = [];
+        let favoriteData = [];
 
-          setRecipes([
-            ...defaultRecipes,
-            ...customRecipes
-          ]);
+        if (savedRecipes) {
+          const parsedRecipes = JSON.parse(savedRecipes);
+
+          if (Array.isArray(parsedRecipes)) {
+            customRecipes = parsedRecipes;
+          }
         }
 
         if (savedFavorites) {
-          setFavorites(JSON.parse(savedFavorites));
+          const parsedFavorites = JSON.parse(savedFavorites);
+
+          if (Array.isArray(parsedFavorites)) {
+            favoriteData = parsedFavorites;
+          }
         }
+
+        setRecipes([
+          ...defaultRecipes,
+          ...customRecipes
+        ]);
+
+        setFavorites(favoriteData);
+
       } catch (error) {
         console.log("Gagal memuat data:", error);
+
+        setRecipes(defaultRecipes);
+        setFavorites([]);
       } finally {
         setLoaded(true);
       }
@@ -44,6 +61,7 @@ export const RecipeProvider = ({ children }) => {
     loadData();
   }, []);
 
+  // Menyimpan data ke AsyncStorage
   useEffect(() => {
     if (!loaded) return;
 
@@ -62,6 +80,7 @@ export const RecipeProvider = ({ children }) => {
           "favorites",
           JSON.stringify(favorites)
         );
+
       } catch (error) {
         console.log("Gagal menyimpan data:", error);
       }
@@ -70,6 +89,7 @@ export const RecipeProvider = ({ children }) => {
     saveData();
   }, [recipes, favorites, loaded]);
 
+  // Menambahkan atau menghapus favorit
   const toggleFavorite = (id) => {
     setFavorites(previous =>
       previous.includes(id)
@@ -78,13 +98,18 @@ export const RecipeProvider = ({ children }) => {
     );
   };
 
+  // Menambahkan resep baru
   const addRecipe = (recipe) => {
     setRecipes(previous => [
-      { ...recipe, isCustom: true },
+      {
+        ...recipe,
+        isCustom: true
+      },
       ...previous
     ]);
   };
 
+  // Menghapus resep
   const removeRecipe = (id) => {
     setRecipes(previous =>
       previous.filter(recipe => recipe.id !== id)
@@ -110,5 +135,3 @@ export const RecipeProvider = ({ children }) => {
     </RecipeContext.Provider>
   );
 };
-
-export const useRecipes = () => useContext(RecipeContext);

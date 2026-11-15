@@ -4,78 +4,117 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView
+  SafeAreaView,
+  ActivityIndicator
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRecipes } from "../context/RecipeContext";
+import { useRecipes } from "../hooks/useRecipes";
 
 export default function ProfileScreen() {
-  const { recipes, favorites } = useRecipes();
+  const { recipes, favorites, loaded } = useRecipes();
+
+  if (!loaded) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#E58B38" />
+        <Text style={styles.loadingText}>Memuat profil...</Text>
+      </SafeAreaView>
+    );
+  }
 
   const customCount = recipes.filter(
-  recipe => recipe.isCustom
-).length;
+    recipe => recipe.isCustom
+  ).length;
 
   const menuItems = [
-  {
-    icon: "book-outline",
-    title: "Total Resep",
-    value: recipes.length
-  },
-  {
-    icon: "create-outline",
-    title: "Resep Buatan Saya",
-    value: customCount
-  },
-  {
-    icon: "heart-outline",
-    title: "Resep Favorit",
-    value: favorites.length
-  },
-  {
-    icon: "restaurant-outline",
-    title: "Kategori",
-    value: 4
-  }
-];
+    {
+      icon: "book-outline",
+      title: "Total Resep",
+      value: recipes.length
+    },
+    {
+      icon: "create-outline",
+      title: "Resep Buatan Saya",
+      value: customCount
+    },
+    {
+      icon: "heart-outline",
+      title: "Resep Favorit",
+      value: favorites.length
+    },
+    {
+      icon: "restaurant-outline",
+      title: "Kategori",
+      value: 4
+    }
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.heading}>My Profile</Text>
 
       <View style={styles.profileCard}>
         <View style={styles.avatar}>
-          <Ionicons name="person" size={45} color="#E58B38" />
+          <Ionicons
+            name="person"
+            size={45}
+            color="#E58B38"
+          />
         </View>
 
         <Text style={styles.name}>Food Lover</Text>
-        <Text style={styles.email}>foodlover@example.com</Text>
+        <Text style={styles.email}>
+          foodlover@example.com
+        </Text>
         <Text style={styles.description}>
           Selamat datang di FoodRecipe!
         </Text>
       </View>
 
-      <Text style={styles.sectionTitle}>My Activity</Text>
+      <Text style={styles.sectionTitle}>
+        My Activity
+      </Text>
 
       {menuItems.map((item, index) => (
         <View style={styles.menuItem} key={index}>
           <View style={styles.iconBox}>
-            <Ionicons name={item.icon} size={22} color="#E58B38" />
+            <Ionicons
+              name={item.icon}
+              size={22}
+              color="#E58B38"
+            />
           </View>
 
-          <Text style={styles.menuTitle}>{item.title}</Text>
-          <Text style={styles.menuValue}>{item.value}</Text>
+          <Text style={styles.menuTitle}>
+            {item.title}
+          </Text>
+
+          <Text style={styles.menuValue}>
+            {item.value}
+          </Text>
         </View>
       ))}
 
       <View style={styles.about}>
-        <Ionicons name="information-circle-outline" size={21} color="#E58B38" />
+        <Ionicons
+          name="information-circle-outline"
+          size={21}
+          color="#E58B38"
+        />
+
         <View style={{ flex: 1 }}>
-          <Text style={styles.aboutTitle}>About FoodRecipe</Text>
+          <Text style={styles.aboutTitle}>
+            About FoodRecipe
+          </Text>
+
           <Text style={styles.aboutText}>
             FoodRecipe adalah aplikasi untuk menemukan,
             menyimpan, dan berbagi inspirasi resep masakan.
           </Text>
-          <Text style={styles.version}>Version 1.0.0</Text>
+
+          <Text style={styles.version}>
+            Version 1.0.0
+          </Text>
         </View>
       </View>
     </SafeAreaView>
@@ -87,6 +126,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF9F2",
     padding: 20
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#FFF9F2",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#888",
+    fontSize: 14
   },
   heading: {
     fontSize: 25,

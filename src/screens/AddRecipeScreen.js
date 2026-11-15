@@ -10,7 +10,7 @@ import {
   Alert,
   SafeAreaView
 } from "react-native";
-import { useRecipes } from "../context/RecipeContext";
+import { useRecipes } from "../hooks/useRecipes";
 
 const categories = ["Breakfast", "Lunch", "Dinner", "Dessert"];
 
@@ -24,70 +24,105 @@ export default function AddRecipeScreen({ navigation }) {
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
   const [category, setCategory] = useState("Lunch");
+  const [isSaving, setIsSaving] = useState(false);
 
-  
-const handleSubmit = () => {
-  const ingredientList = ingredients
-    .split("\n")
-    .map(item => item.trim())
-    .filter(Boolean);
+  const handleSubmit = () => {
+    if (isSaving) return;
 
-  const instructionList = instructions
-    .split("\n")
-    .map(item => item.trim())
-    .filter(Boolean);
+    const ingredientList = ingredients
+      .split("\n")
+      .map(item => item.trim())
+      .filter(Boolean);
 
-  if (
-    !name.trim() ||
-    !description.trim() ||
-    !time.trim() ||
-    ingredientList.length === 0 ||
-    instructionList.length === 0
-  ) {
-    Alert.alert(
-      "Perhatian",
-      "Lengkapi nama, deskripsi, waktu, bahan, dan langkah memasak."
-    );
-    return;
-  }
+    const instructionList = instructions
+      .split("\n")
+      .map(item => item.trim())
+      .filter(Boolean);
 
-  const recipe = {
-    id: Date.now().toString(),
-    name: name.trim(),
-    description: description.trim(),
-    category,
-    time: time.trim(),
-    difficulty: "Mudah",
-    servings: "2 porsi",
-    rating: 5.0,
-    image: image.trim() ||
-      "https://images.unsplash.com/photo-1547592180-85f173990554?w=800",
-    ingredients: ingredientList,
-    instructions: instructionList
-  };
-
-  addRecipe(recipe);
-
-  Alert.alert("Berhasil", "Resep berhasil ditambahkan!", [
-    {
-      text: "OK",
-      onPress: () => {
-        setName("");
-        setDescription("");
-        setImage("");
-        setTime("");
-        setIngredients("");
-        setInstructions("");
-        setCategory("Lunch");
-        navigation.navigate("Home");
-      }
+    if (
+      !name.trim() ||
+      !description.trim() ||
+      !time.trim() ||
+      ingredientList.length === 0 ||
+      instructionList.length === 0
+    ) {
+      Alert.alert(
+        "Perhatian",
+        "Lengkapi nama, deskripsi, waktu, bahan, dan langkah memasak."
+      );
+      return;
     }
-  ]);
-};
+
+    const imageUrl = image.trim();
+
+    if (
+      imageUrl &&
+      !/^https?:\/\/.+/i.test(imageUrl)
+    ) {
+      Alert.alert(
+        "URL Foto Tidak Valid",
+        "Masukkan URL foto yang diawali http:// atau https://."
+      );
+      return;
+    }
+
+    const recipe = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      description: description.trim(),
+      category,
+      time: time.trim(),
+      difficulty: "Mudah",
+      servings: "2 porsi",
+      rating: 5.0,
+      image: imageUrl ||
+        "https://images.unsplash.com/photo-1547592180-85f173990554?w=800",
+      ingredients: ingredientList,
+      instructions: instructionList
+    };
+
+    try {
+      setIsSaving(true);
+      addRecipe(recipe);
+
+      Alert.alert(
+        "Berhasil",
+        "Resep berhasil ditambahkan!",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setName("");
+              setDescription("");
+              setImage("");
+              setTime("");
+              setIngredients("");
+              setInstructions("");
+              setCategory("Lunch");
+              setIsSaving(false);
+              navigation.navigate("Home");
+            }
+          }
+        ],
+        {
+          cancelable: false
+        }
+      );
+    } catch (error) {
+      setIsSaving(false);
+      Alert.alert(
+        "Gagal",
+        "Resep tidak berhasil ditambahkan. Silakan coba lagi."
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Add New Recipe</Text>
           <Text style={styles.subtitle}>
@@ -100,6 +135,7 @@ const handleSubmit = () => {
           <TextInput
             style={styles.input}
             placeholder="Contoh: Ayam Geprek"
+            placeholderTextColor="#AAA"
             value={name}
             onChangeText={setName}
           />
@@ -108,6 +144,7 @@ const handleSubmit = () => {
           <TextInput
             style={[styles.input, styles.multiline]}
             placeholder="Deskripsi masakan..."
+            placeholderTextColor="#AAA"
             value={description}
             onChangeText={setDescription}
             multiline
@@ -117,15 +154,18 @@ const handleSubmit = () => {
           <TextInput
             style={styles.input}
             placeholder="https://..."
+            placeholderTextColor="#AAA"
             value={image}
             onChangeText={setImage}
             autoCapitalize="none"
+            keyboardType="url"
           />
 
           <Text style={styles.label}>Waktu Memasak *</Text>
           <TextInput
             style={styles.input}
             placeholder="Contoh: 30 menit"
+            placeholderTextColor="#AAA"
             value={time}
             onChangeText={setTime}
           />
@@ -156,7 +196,8 @@ const handleSubmit = () => {
           <Text style={styles.label}>Bahan-bahan *</Text>
           <TextInput
             style={[styles.input, styles.multiline]}
-            placeholder={"Masukkan satu bahan per baris"}
+            placeholder="Masukkan satu bahan per baris"
+            placeholderTextColor="#AAA"
             value={ingredients}
             onChangeText={setIngredients}
             multiline
@@ -165,17 +206,24 @@ const handleSubmit = () => {
           <Text style={styles.label}>Langkah Memasak *</Text>
           <TextInput
             style={[styles.input, styles.multiline]}
-            placeholder={"Masukkan satu langkah per baris"}
+            placeholder="Masukkan satu langkah per baris"
+            placeholderTextColor="#AAA"
             value={instructions}
             onChangeText={setInstructions}
             multiline
           />
 
           <TouchableOpacity
-            style={styles.submit}
+            style={[
+              styles.submit,
+              isSaving && styles.submitDisabled
+            ]}
             onPress={handleSubmit}
+            disabled={isSaving}
           >
-            <Text style={styles.submitText}>Simpan Resep</Text>
+            <Text style={styles.submitText}>
+              {isSaving ? "Menyimpan..." : "Simpan Resep"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -257,6 +305,9 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     alignItems: "center",
     marginTop: 28
+  },
+  submitDisabled: {
+    opacity: 0.6
   },
   submitText: {
     color: "#FFFFFF",
